@@ -121,8 +121,13 @@ exports.getCases = async (req, res) => {
 exports.recordPayment = async (req, res) => {
   const { loanId, amount, method, reference } = req.body;
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { id: parseInt(loanId) },
+    const loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { id: isNaN(parseInt(loanId)) ? -1 : parseInt(loanId) },
+          { reference: String(loanId) }
+        ]
+      },
       include: { installment: true }
     });
 
@@ -161,8 +166,13 @@ exports.recordPayment = async (req, res) => {
 exports.logInteraction = async (req, res) => {
   const { loanId, type, outcome, notes } = req.body;
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { id: parseInt(loanId) }
+    const loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { id: isNaN(parseInt(loanId)) ? -1 : parseInt(loanId) },
+          { reference: String(loanId) }
+        ]
+      }
     });
 
     if (!loan) return res.status(404).json({ message: 'Loan not found' });

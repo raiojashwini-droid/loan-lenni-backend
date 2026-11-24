@@ -163,8 +163,13 @@ const generateDueDates = (frequency, termMonths, disbursementDate = new Date(), 
 
 exports.disburseLoanInternal = async (loanId, operatorNameOrEmail) => {
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { reference: loanId }
+    const loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { reference: String(loanId) },
+          { id: !isNaN(parseInt(loanId)) ? parseInt(loanId) : -1 }
+        ]
+      }
     });
 
     if (!loan) {
@@ -193,7 +198,7 @@ exports.disburseLoanInternal = async (loanId, operatorNameOrEmail) => {
     const updatedLoan = await prisma.$transaction(async (tx) => {
       // 1. Update loan status
       const updated = await tx.loan.update({
-        where: { reference: loanId },
+        where: { id: loan.id },
         data: {
           status: 'Active',
           stage: 'ACTIVE',

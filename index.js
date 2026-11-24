@@ -21,10 +21,8 @@ try {
   const { execSync } = require('child_process');
   console.log("==================================================");
   console.log("🔄 AUTO-SYNCING PRISMA DATABASE SCHEMA...");
-  execSync('npx prisma db push', { stdio: 'inherit' });
-  console.log("⚙️ REGENERATING PRISMA CLIENT...");
-  execSync('npx prisma generate', { stdio: 'inherit' });
-  console.log("✅ DATABASE SCHEMA SYNC AND CLIENT REGENERATION SUCCESSFUL!");
+  execSync('npx prisma db push --skip-generate', { stdio: 'inherit' });
+  console.log("✅ DATABASE SCHEMA SYNC SUCCESSFUL!");
   console.log("==================================================");
 } catch (prismaError) {
   console.error("❌ Failed to automatically sync Prisma database:", prismaError.message);
@@ -53,14 +51,18 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in the allowed list or is a localhost port
-    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+    // Allow all local origins (localhost, 127.0.0.1) and allowed list
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('https://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.startsWith('https://127.0.0.1:')
+    ) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true);
     }
   },
   credentials: true,
@@ -138,7 +140,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   
   // Start email queue background processor

@@ -108,7 +108,7 @@ async function main() {
         });
 
         // Add history for this installment
-        await prisma.auditLog.create({
+        await prisma.auditlog.create({
           data: {
             action: 'System Sync',
             user: 'system@lms.demo',

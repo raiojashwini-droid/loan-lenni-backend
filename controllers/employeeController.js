@@ -343,7 +343,7 @@ exports.getLatestLoan = async (req, res) => {
     }
 
     if (!loan) {
-      return res.status(404).json({ message: 'No applications found' });
+      return res.status(200).json(null);
     }
 
     const metadata = typeof loan.metadata === 'string' ? JSON.parse(loan.metadata) : (loan.metadata || {});

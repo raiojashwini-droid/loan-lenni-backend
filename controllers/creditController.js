@@ -159,8 +159,13 @@ exports.makeDecision = async (req, res) => {
   const { loanId, decision, notes } = req.body;
 
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { reference: loanId }
+    let loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { reference: String(loanId) },
+          { id: !isNaN(parseInt(loanId)) ? parseInt(loanId) : -1 }
+        ]
+      }
     });
 
     if (!loan) {
@@ -170,7 +175,7 @@ exports.makeDecision = async (req, res) => {
     const isApprove = decision === 'APPROVE';
     
     const updatedLoan = await prisma.loan.update({
-      where: { reference: loanId },
+      where: { id: loan.id },
       data: {
         status: isApprove ? 'Credit Approved' : 'Credit Rejected',
         stage: isApprove ? 'ADMIN_APPROVAL' : 'REJECTED',
@@ -275,8 +280,13 @@ exports.updateStatus = async (req, res) => {
   const { loanId, status, notes } = req.body;
 
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { reference: loanId }
+    const loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { reference: String(loanId) },
+          { id: !isNaN(parseInt(loanId)) ? parseInt(loanId) : -1 }
+        ]
+      }
     });
 
     if (!loan) {
@@ -284,7 +294,7 @@ exports.updateStatus = async (req, res) => {
     }
 
     const updatedLoan = await prisma.loan.update({
-      where: { reference: loanId },
+      where: { id: loan.id },
       data: {
         status,
         updatedAt: new Date()
@@ -312,8 +322,13 @@ exports.makeCounterOffer = async (req, res) => {
   const { loanId, amount, term } = req.body;
 
   try {
-    const loan = await prisma.loan.findUnique({
-      where: { reference: loanId }
+    const loan = await prisma.loan.findFirst({
+      where: {
+        OR: [
+          { reference: String(loanId) },
+          { id: !isNaN(parseInt(loanId)) ? parseInt(loanId) : -1 }
+        ]
+      }
     });
 
     if (!loan) {
@@ -358,7 +373,7 @@ exports.makeCounterOffer = async (req, res) => {
     };
 
     const updatedLoan = await prisma.loan.update({
-      where: { reference: loanId },
+      where: { id: loan.id },
       data: {
         status: 'Counter Offer',
         stage: 'COUNTER_OFFER',

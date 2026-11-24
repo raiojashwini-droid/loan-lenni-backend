@@ -101,9 +101,20 @@ exports.apply = async (req, res) => {
 exports.getAllLoans = async (req, res) => {
   try {
     const loans = await prisma.loan.findMany({
+      include: {
+        installment: true,
+        user: { select: { id: true, name: true, email: true, phone: true } }
+      },
       orderBy: { createdAt: 'desc' }
     });
-    res.json(loans);
+    const mapped = loans.map(l => ({
+      ...l,
+      installments: l.installment || [],
+      name: l.employeeName || l.user?.name,
+      email: l.employeeEmail || l.user?.email,
+      phone: l.user?.phone
+    }));
+    res.json(mapped);
   } catch (error) {
     console.error('Fetch All Loans Error:', error);
     res.status(500).json({ message: 'Failed to fetch loans' });
